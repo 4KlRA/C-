@@ -4,7 +4,7 @@
 using namespace std;
 
 int main(){
-    int n, x, m = 0;
+    int n, x, m;
     cin >> n;
     vector<int> a(n), b(n);
     for(int i = 0; i < n; i++){
@@ -12,6 +12,7 @@ int main(){
         cin >> b[i];
     }
     x = b[0];
+    m = b[0];
     for (int i = 1; i < n - 1; i++){
         m = max(m, (x + (b[i] - a[i])));
         x = (x + (b[i] - a[i]));
