@@ -1,77 +1,57 @@
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <vector>
 using namespace std;
 
-int main(){
-    //Sum of digits of a number
-    int n;
-    cout<<"Enter a number for sum of digits: ";
-    cin>>n;
+int sumOfDigits(int n){
+     //Sum of digits of a number
     int sum = 0;
     while(n > 0){
         sum += n % 10;
         n /= 10;
     }
-    cout<<"Sum of digits: "<<sum<<endl;
+    return sum;
+}
+
+int numberOfDigits(int n){
     //Count digits in a number
-    int n2, digits = 0;
-    cout << "Enter a number for counting digits: ";
-    cin >> n2;
-    while (n2 > 0) {
-        n2 /= 10;
+    int digits = 0;
+    while (n > 0) {
+        n /= 10;
         digits++;
     }
-    cout << "Number of digits: " << digits << endl;
+    return digits;
+}
+
+bool isArmstrong(int n){
     //Check Armstrong number
-    int n3, order;
-    cout << "Enter a number for checking Armstrong: ";
-    cin >> n3;
-    order = to_string(n3).length();
-    int originalNum = n3;
+    int  order;
+    order = to_string(n).length();
+    int originalNum = n;
     int armstrongSum = 0;
-    while (n3 > 0){
-        int digit = n3 % 10;
+    while (n > 0){
+        int digit = n % 10;
         armstrongSum += pow(digit, order);
-        n3 /= 10;
+        n /= 10;
     }
-    if (originalNum == armstrongSum) {
-        cout << originalNum << " is an Armstrong number." << endl;
-    } else {
-        cout << originalNum << " is not an Armstrong number." << endl;
-    }
+    return originalNum == armstrongSum;
+}
+
+int linearSearch(const vector<int>& arr, int n, int key){
     //Linear search in an array
-    int n4, key;
-    cout << "Enter the size of the array: ";
-    cin >> n4;
-    int arr[n4];
-    cout << "Enter the elements of the array: ";
-    for (int i = 0; i < n4; i++) {
-        cin >> arr[i];
-    }
-    cout << "Enter the key to search: ";
-    cin >> key;
-    // Perform linear search
-    bool found = false;
-    for (int i = 0; i < n4; i++) {
+    for (int i = 0; i < n; i++) {
         if (arr[i] == key) {
-            cout << "Key found at index " << i << endl;
-            found = true;
-            break;
+            return i; // Return index if found
         }
     }
-    if(!found){
-    cout << "Key not found\n";
-    }
-    //Second largest element in an array
-    int largest, secondLargest;
-    largest = arr[0];
-    secondLargest = INT_MIN;
-    if(n4 < 2){
-    cout << "Second largest not possible\n";
-    return 0;
-    } else{
-    for (int i = 1; i < n4; i++) {
+    return -1; // Return -1 if not found
+}
+
+int secondLargestElement(const vector<int>& arr, int n){
+    //Find second largest element in an array
+    int largest = INT_MIN, secondLargest = INT_MIN;
+    for (int i = 0; i < n; i++) {
         if (arr[i] > largest) {
             secondLargest = largest;
             largest = arr[i];
@@ -79,7 +59,45 @@ int main(){
             secondLargest = arr[i];
         }
     }
-    cout << "Second largest element: " << secondLargest << endl;
+    return secondLargest;
+}
+
+int main(){
+    int a;
+    cout<<"Enter a number for sum of digits: ";
+    cin>>a;
+    cout << "Sum of digits: " << sumOfDigits(a) << endl;
+
+    cout << "Enter a number for counting digits: ";
+    cin >> a;
+    cout << "Number of digits: " << numberOfDigits(a) << endl;
+    
+    cout << "Enter a number for checking Armstrong: ";
+    cin >> a;
+    if (isArmstrong(a)) {
+        cout << a << " is an Armstrong number." << endl;
+    } else {
+        cout << a << " is not an Armstrong number." << endl;
     }
+    
+    int key;
+    cout << "Enter number of elements in array: ";
+    cin >> a;
+    vector<int> arr(a);
+    cout << "Enter elements of array: ";
+    for (int i = 0; i < a; i++) {
+        cin >> arr[i];
+    }
+    cout << "Enter a number to search in array: ";
+    cin >> key;
+    int index = linearSearch(arr, a, key);
+    if (index != -1) {
+        cout << "Element found at index: " << index << endl;
+    } else {
+        cout << "Element not found in array." << endl;
+    }
+
+    cout << "Second largest element in array: " << secondLargestElement(arr, a) << endl;
+
     return 0;
 }
