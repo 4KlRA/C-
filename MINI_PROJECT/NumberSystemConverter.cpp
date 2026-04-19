@@ -1,17 +1,24 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int AnyBaseToDec(string num, int base){
+long long AnyBaseToDec(string num, int base){
     if (base < 2 || base > 36) {
         cout << "Invalid base\n";
         return -1;
     }
 
     string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    int decimal = 0;
+    long long decimal = 0;
+    bool negative = false;
 
-    for(char c : num){
-        c = toupper(c);
+    int start = 0;
+    if(num[0] == '-'){
+        negative = true;
+        start = 1;
+    }
+
+    for(int i = start; i < num.length(); i++){
+        char c = toupper(num[i]);
         int value = digits.find(c);
 
         if (value == string::npos || value >= base) {
@@ -19,13 +26,13 @@ int AnyBaseToDec(string num, int base){
             return -1;
         }
 
-        decimal = decimal * base + value;  // FIXED LOGIC
+        decimal = decimal * base + value;
     }
 
-    return decimal;
+    return negative ? -decimal : decimal;
 }
 
-string DecToAnyBase(int num, int base){
+string DecToAnyBase(long long num, int base){
     if (base < 2 || base > 36) {
         return "Invalid base";
     }
@@ -45,7 +52,7 @@ string DecToAnyBase(int num, int base){
 }
 
 string AnyBaseToAnyBase(string num, int fromBase, int toBase) {
-    int decimal = AnyBaseToDec(num, fromBase);
+    long long decimal = AnyBaseToDec(num, fromBase);
     if (decimal == -1) {
         return "Conversion failed";
     }
@@ -72,7 +79,17 @@ int main(){
             cin >> num;
             cout << "Enter the base: ";
             cin >> base;
-            cout << DecToAnyBase(stoi(num), base) << endl;
+            try {
+                bool negative = (num[0] == '-');
+                long long n = abs(stoll(num));
+                if(!negative) {
+                    cout << DecToAnyBase(n, base) << endl;
+                } else {
+                    cout << "-" << DecToAnyBase(n, base) << endl;
+                }
+            } catch (...) {
+                cout << "Invalid decimal input\n";
+            }
             break;
 
         case 2:
@@ -96,6 +113,5 @@ int main(){
         default:
             cout << "Invalid Choice.\n";
     }
-    system("pause");
     return 0;
 }

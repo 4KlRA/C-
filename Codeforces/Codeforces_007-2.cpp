@@ -1,27 +1,34 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <iterator>
 using namespace std;
 
 int main(){
     int n;
     cin >> n;
     vector<int> a(n);
+
     for(int i = 0; i < n; i++){
         cin >> a[i];
     }
-    auto x = max_element(a.begin(), a.end());
-    int y = distance(a.begin(), x);
-    while(*x != a[0]){
-        for(int i = y; i > 0; i--){
-            swap(a[i], a[i - 1]);
-        }
+
+    int max_idx = max_element(a.begin(), a.end()) - a.begin();
+    int min_idx = min_element(a.begin(), a.end()) - a.begin();
+
+    int count = 0;
+
+    // Move max to front
+    count += max_idx;
+
+    // If min is before max, its index increases after max moves
+    if(min_idx < max_idx){
+        min_idx++;
     }
 
-    for(int i = 0; i < n; i++){
-        cout << a[i] << " ";
-    }
-    system("pause");
+    // Move min to end
+    count += (n - 1 - min_idx);
+
+    cout << count << endl;
+
     return 0;
 }
