@@ -17,15 +17,12 @@ int main(){
 
     int count = 0;
 
-    // Move max to front
     count += max_idx;
 
-    // If min is before max, its index increases after max moves
     if(min_idx < max_idx){
         min_idx++;
     }
 
-    // Move min to end
     count += (n - 1 - min_idx);
 
     cout << count << endl;
