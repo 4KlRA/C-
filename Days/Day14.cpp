@@ -62,4 +62,5 @@ int main() {
     } else {
         cout << "The strings are not rotations of each other." << endl;
     }   
+    return 0;
 }
