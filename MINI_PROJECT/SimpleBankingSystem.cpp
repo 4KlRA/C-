@@ -12,7 +12,7 @@ private:
     double balance;
 
 public:
-    BankAccount() {} //A default constructor was needed for map
+    BankAccount() {} //A default constructor is needed for map
 
     BankAccount(string name, string id, string ifsc, long long accNum, double initialBalance) {
         accountHolderName = name;
@@ -22,10 +22,6 @@ public:
         balance = (initialBalance >= 0) ? initialBalance : 0;
     }
 
-    long long getAccountNumber() const {
-        return accountNumber;
-    }
-
     void deposit(double amount) {
         if (amount <= 0) {
             cout << "Invalid deposit amount.\n";
@@ -33,6 +29,7 @@ public:
         }
         balance += amount;
         cout << "Deposit successful.\n";
+        cout << "Current Balance: " << balance << endl;
     }
 
     void withdraw(double amount) {
@@ -43,6 +40,7 @@ public:
         } else {
             balance -= amount;
             cout << "Withdrawal successful.\n";
+            cout << "Remaining Balance: " << balance << endl;
         }
     }
 
@@ -50,6 +48,8 @@ public:
         cout << "\nAccount Holder: " << accountHolderName << endl;
         cout << "Account Number: " << accountNumber << endl;
         cout << "Balance: " << balance << endl;
+        cout << "Customer ID: " << customerID << endl;
+        cout << "IFSC: " << IFSC << endl;
     }
 };
 
@@ -81,7 +81,7 @@ int main() {
                 double balance;
 
                 cout << "Enter Name: ";
-                cin >> name;
+                getline(cin >> ws, name); // To handle spaces in name
                 cout << "Enter Customer ID: ";
                 cin >> id;
                 cout << "Enter IFSC: ";
