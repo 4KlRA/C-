@@ -1,7 +1,13 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
+#include <vector>
 using namespace std;
+
+struct Transaction {
+    string type;
+    double amount, balance;
+};
 
 class BankAccount {
 private:
@@ -10,6 +16,7 @@ private:
     string IFSC;
     long long accountNumber;
     double balance;
+    vector <Transaction> transactionHistory;
 
 public:
     BankAccount() {} //A default constructor is needed for map
@@ -20,6 +27,7 @@ public:
         IFSC = ifsc;
         accountNumber = accNum;
         balance = (initialBalance >= 0) ? initialBalance : 0;
+        transactionHistory.push_back({ "Initial Deposit", initialBalance, balance });
     }
 
     void deposit(double amount) {
@@ -30,6 +38,7 @@ public:
         balance += amount;
         cout << "Deposit successful.\n";
         cout << "Current Balance: " << balance << endl;
+        transactionHistory.push_back({ "Deposit", amount, balance });
     }
 
     void withdraw(double amount) {
@@ -41,6 +50,7 @@ public:
             balance -= amount;
             cout << "Withdrawal successful.\n";
             cout << "Remaining Balance: " << balance << endl;
+            transactionHistory.push_back({ "Withdrawal", amount, balance });
         }
     }
 
@@ -51,21 +61,99 @@ public:
         cout << "Customer ID: " << customerID << endl;
         cout << "IFSC: " << IFSC << endl;
     }
+
+    const vector<Transaction>& getTransactionHistory() const {
+        return transactionHistory;
+    }
+};
+
+class BankSystem {
+private:
+    map<long long, BankAccount> accounts;
+
+public:
+    void createAccount() {
+        string name, id, ifsc;
+        long long accNum;
+        double initialBalance;
+        cout << "Enter Name: ";
+        getline(cin >> ws, name); // To handle spaces in name
+        cout << "Enter Customer ID: ";
+        cin >> id;
+        cout << "Enter IFSC: ";
+        cin >> ifsc;
+        cout << "Enter Account Number: ";
+        cin >> accNum;
+        cout << "Enter Initial Balance: ";
+        cin >> initialBalance;
+
+        if (accounts.find(accNum) != accounts.end()) {
+            cout << "Account already exists.\n";
+        } else {
+            accounts[accNum] = BankAccount(name, id, ifsc, accNum, initialBalance);
+            cout << "Account created succesfully.\n";
+        }
+    }
+
+    void deposit(long long accNum) {
+        if(accounts.find(accNum) != accounts.end()) {
+            double amount;
+            cout << "Enter amount to deposit: ";
+            cin >> amount;
+            accounts[accNum].deposit(amount);
+        } else {
+            cout << "Account not found.\n";
+        }
+    }
+
+    void withdraw(long long accNum) {
+        if(accounts.find(accNum) != accounts.end()) {
+            double amount;
+            cout << "Enter amount to withdraw: ";
+            cin >> amount;
+            accounts[accNum].withdraw(amount);
+        } else {
+            cout << "Account not found.\n";
+        }
+    }
+
+    void displayAccountDetails(long long accNum) {
+        if(accounts.find(accNum) != accounts.end()) {
+            accounts[accNum].displayDetails();
+        } else {
+            cout << "Account not found.\n";
+        }
+    }
+
+    void displayTransactionHistory(long long accNum) {
+        if(accounts.find(accNum) != accounts.end()) {
+            const vector<Transaction>& history = accounts[accNum].getTransactionHistory();
+            cout << "\nTransaction History for Account " << accNum << ":\n\n";
+            cout << left << setw(15) << "Type"  << setw(15) << "Amount" << setw(15) << "Balance" << endl;
+            cout << string(45, '-') << endl;
+            for (const Transaction& tx : history) {
+                cout << left << setw(15) << tx.type << setw(15) << tx.amount << setw(15) << tx.balance << endl;
+            }
+        } else {
+            cout << "Account not found.\n";
+        }
+    }
 };
 
 void displayMenu(){
-    cout << "\nMenu:\n";
-    cout << "1. Create Account\n";
-    cout << "2. Deposit\n";
-    cout << "3. Withdraw\n";
-    cout << "4. Display Account Details\n";
-    cout << "5. Exit\n";
+    cout << left << setw(5) << "Menu:\n";
+    cout << left << setw(5) << "1." <<  "Create Account\n";
+    cout << left << setw(5) << "2." <<  "Deposit\n";
+    cout << left << setw(5) << "3." <<  "Withdraw\n";
+    cout << left << setw(5) << "4." <<  "Display Account Details\n";
+    cout << left << setw(5) << "5." <<  "Display Transaction History\n";
+    cout << left << setw(5) << "6." <<  "Exit\n";
 }
 
 int main() {
     cout << fixed << setprecision(2);
 
-    map<long long, BankAccount> accounts;
+    BankSystem bank;
     int choice;
 
     do {
@@ -76,61 +164,24 @@ int main() {
         switch(choice) {
 
             case 1: {
-                string name, id, ifsc;
-                long long accNum;
-                double balance;
-
-                cout << "Enter Name: ";
-                getline(cin >> ws, name); // To handle spaces in name
-                cout << "Enter Customer ID: ";
-                cin >> id;
-                cout << "Enter IFSC: ";
-                cin >> ifsc;
-                cout << "Enter Account Number: ";
-                cin >> accNum;
-                cout << "Enter Initial Balance: ";
-                cin >> balance;
-
-                if (accounts.find(accNum) != accounts.end()) {
-                    cout << "Account already exists.\n";
-                } else {
-                    accounts[accNum] = BankAccount(name, id, ifsc, accNum, balance);
-                    cout << "Account created successfully.\n";
-                }
+                bank.createAccount();
                 break;
             }
 
             case 2: {
                 long long accNum;
-                double amount;
-
                 cout << "Enter Account Number: ";
                 cin >> accNum;
-
-                if (accounts.find(accNum) != accounts.end()) {
-                    cout << "Enter amount to deposit: ";
-                    cin >> amount;
-                    accounts[accNum].deposit(amount);
-                } else {
-                    cout << "Account not found.\n";
-                }
+                bank.deposit(accNum);
                 break;
             }
 
             case 3: {
                 long long accNum;
-                double amount;
-
                 cout << "Enter Account Number: ";
                 cin >> accNum;
 
-                if (accounts.find(accNum) != accounts.end()) {
-                    cout << "Enter amount to withdraw: ";
-                    cin >> amount;
-                    accounts[accNum].withdraw(amount);
-                } else {
-                    cout << "Account not found.\n";
-                }
+                bank.withdraw(accNum);
                 break;
             }
 
@@ -139,16 +190,19 @@ int main() {
 
                 cout << "Enter Account Number: ";
                 cin >> accNum;
-
-                if (accounts.find(accNum) != accounts.end()) {
-                    accounts[accNum].displayDetails();
-                } else {
-                    cout << "Account not found.\n";
-                }
+                bank.displayAccountDetails(accNum);
                 break;
             }
 
-            case 5:
+            case 5: {
+                long long accNum;
+                cout << "Enter Account Number: ";
+                cin >> accNum;
+                bank.displayTransactionHistory(accNum);
+                break;
+            }
+
+            case 6:
                 cout << "Exiting...\n";
                 break;
 
@@ -156,7 +210,7 @@ int main() {
                 cout << "Invalid choice.\n";
         }
 
-    } while(choice != 5);
+    } while(choice != 6);
 
     return 0;
 }
