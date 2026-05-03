@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <map>
 #include <vector>
+#include <string>
+#include <limits>
 using namespace std;
 
 struct Transaction {
@@ -91,7 +93,7 @@ public:
             cout << "Account already exists.\n";
         } else {
             accounts[accNum] = BankAccount(name, id, ifsc, accNum, initialBalance);
-            cout << "Account created succesfully.\n";
+            cout << "Account created successfully.\n";
         }
     }
 
@@ -128,11 +130,15 @@ public:
     void displayTransactionHistory(long long accNum) {
         if(accounts.find(accNum) != accounts.end()) {
             const vector<Transaction>& history = accounts[accNum].getTransactionHistory();
-            cout << "\nTransaction History for Account " << accNum << ":\n\n";
-            cout << left << setw(15) << "Type"  << setw(15) << "Amount" << setw(15) << "Balance" << endl;
-            cout << string(45, '-') << endl;
+            cout << "\nTransaction History for Account " << accNum << "\n";
+            cout << string(50, '=') << endl;
+
+            cout << left << setw(20) << "Type" << right << setw(12) << "Amount" << right << setw(12) << "Balance" << endl;
+
+            cout << string(50, '-') << endl;
+
             for (const Transaction& tx : history) {
-                cout << left << setw(15) << tx.type << setw(15) << tx.amount << setw(15) << tx.balance << endl;
+                cout << left << setw(20) << tx.type << right << setw(12) << tx.amount << right << setw(12) << tx.balance << endl;
             }
         } else {
             cout << "Account not found.\n";
@@ -140,14 +146,23 @@ public:
     }
 };
 
-void displayMenu(){
-    cout << left << setw(5) << "Menu:\n";
-    cout << left << setw(5) << "1." <<  "Create Account\n";
-    cout << left << setw(5) << "2." <<  "Deposit\n";
-    cout << left << setw(5) << "3." <<  "Withdraw\n";
-    cout << left << setw(5) << "4." <<  "Display Account Details\n";
-    cout << left << setw(5) << "5." <<  "Display Transaction History\n";
-    cout << left << setw(5) << "6." <<  "Exit\n";
+void displayMenu() {
+    cout << "\n====================================\n";
+    cout << "           BANK MENU\n";
+    cout << "====================================\n";
+    cout << "1. Create Account\n";
+    cout << "2. Deposit\n";
+    cout << "3. Withdraw\n";
+    cout << "4. Display Account Details\n";
+    cout << "5. Transaction History\n";
+    cout << "6. Exit\n";
+    cout << "====================================\n";
+}
+
+void pause() {
+    cout << "\nPress Enter to continue...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
 }
 
 int main() {
@@ -159,12 +174,18 @@ int main() {
     do {
         displayMenu();
         cout << "Enter choice: ";
-        cin >> choice;
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "Invalid input. Try again.\n";
+            continue;
+        }
 
         switch(choice) {
 
             case 1: {
                 bank.createAccount();
+                pause();
                 break;
             }
 
@@ -172,7 +193,9 @@ int main() {
                 long long accNum;
                 cout << "Enter Account Number: ";
                 cin >> accNum;
+
                 bank.deposit(accNum);
+                pause();
                 break;
             }
 
@@ -182,15 +205,17 @@ int main() {
                 cin >> accNum;
 
                 bank.withdraw(accNum);
+                pause();
                 break;
             }
 
             case 4: {
                 long long accNum;
-
                 cout << "Enter Account Number: ";
                 cin >> accNum;
+
                 bank.displayAccountDetails(accNum);
+                pause();
                 break;
             }
 
@@ -198,7 +223,9 @@ int main() {
                 long long accNum;
                 cout << "Enter Account Number: ";
                 cin >> accNum;
+
                 bank.displayTransactionHistory(accNum);
+                pause();
                 break;
             }
 
