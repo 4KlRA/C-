@@ -19,6 +19,7 @@ private:
     long long accountNumber;
     double balance;
     vector <Transaction> transactionHistory;
+    int transactionCount = 0;
 
 public:
     BankAccount() {} //A default constructor is needed for map
@@ -30,6 +31,7 @@ public:
         accountNumber = accNum;
         balance = (initialBalance >= 0) ? initialBalance : 0;
         transactionHistory.push_back({ "Initial Deposit", initialBalance, balance });
+        transactionCount++;
     }
 
     void deposit(double amount) {
@@ -41,6 +43,7 @@ public:
         cout << "Deposit successful.\n";
         cout << "Current Balance: " << balance << endl;
         transactionHistory.push_back({ "Deposit", amount, balance });
+        transactionCount++;
     }
 
     void withdraw(double amount) {
@@ -53,6 +56,7 @@ public:
             cout << "Withdrawal successful.\n";
             cout << "Remaining Balance: " << balance << endl;
             transactionHistory.push_back({ "Withdrawal", amount, balance });
+            transactionCount++;
         }
     }
 
@@ -62,10 +66,15 @@ public:
         cout << "Balance: " << balance << endl;
         cout << "Customer ID: " << customerID << endl;
         cout << "IFSC: " << IFSC << endl;
+        cout << "Transaction Count: " << transactionCount << endl;
     }
 
     const vector<Transaction>& getTransactionHistory() const {
         return transactionHistory;
+    }
+
+    int getTransactionCount() const {
+        return transactionCount;
     }
 };
 
@@ -140,22 +149,32 @@ public:
             for (const Transaction& tx : history) {
                 cout << left << setw(20) << tx.type << right << setw(12) << tx.amount << right << setw(12) << tx.balance << endl;
             }
+            cout << history.size() << " transactions displayed.\n";
         } else {
             cout << "Account not found.\n";
         }
     }
 };
 
+long long getAccountNumber() {
+    long long accNum;
+    cout << "Enter Account Number: ";
+    
+    while (!(cin >> accNum)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid input. Enter a valid account number: ";
+    }
+    return accNum;
+}
+
 void displayMenu() {
     cout << "\n====================================\n";
     cout << "           BANK MENU\n";
     cout << "====================================\n";
     cout << "1. Create Account\n";
-    cout << "2. Deposit\n";
-    cout << "3. Withdraw\n";
-    cout << "4. Display Account Details\n";
-    cout << "5. Transaction History\n";
-    cout << "6. Exit\n";
+    cout << "2. Account Operations\n";
+    cout << "3. Exit\n";
     cout << "====================================\n";
 }
 
@@ -163,6 +182,38 @@ void pause() {
     cout << "\nPress Enter to continue...";
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     cin.get();
+}
+
+void accountMenu(BankSystem& bank) {
+    long long accNum = getAccountNumber();
+
+    if(bank.accounts.find(accNum) == bank.accounts.end()) {
+        cout << "Account not found.\n";
+        return;
+    }
+    int choice;
+    do {
+        cout << "\n--- Account Menu ---\n";
+        cout << "1. Deposit\n";
+        cout << "2. Withdraw\n";
+        cout << "3. Details\n";
+        cout << "4. Transaction History\n";
+        cout << "5. Back\n";
+        cout << "Choice: ";
+
+        cin >> choice;
+
+        switch (choice) {
+            case 1: bank.deposit(accNum); break;
+            case 2: bank.withdraw(accNum); break;
+            case 3: bank.displayAccountDetails(accNum); break;
+            case 4: bank.displayTransactionHistory(accNum); break;
+            case 5: return;
+            default: cout << "Invalid choice\n";
+        }
+
+        pause();
+    } while (true);
 }
 
 int main() {
@@ -190,46 +241,11 @@ int main() {
             }
 
             case 2: {
-                long long accNum;
-                cout << "Enter Account Number: ";
-                cin >> accNum;
-
-                bank.deposit(accNum);
-                pause();
+                accountMenu(bank);
                 break;
             }
 
-            case 3: {
-                long long accNum;
-                cout << "Enter Account Number: ";
-                cin >> accNum;
-
-                bank.withdraw(accNum);
-                pause();
-                break;
-            }
-
-            case 4: {
-                long long accNum;
-                cout << "Enter Account Number: ";
-                cin >> accNum;
-
-                bank.displayAccountDetails(accNum);
-                pause();
-                break;
-            }
-
-            case 5: {
-                long long accNum;
-                cout << "Enter Account Number: ";
-                cin >> accNum;
-
-                bank.displayTransactionHistory(accNum);
-                pause();
-                break;
-            }
-
-            case 6:
+            case 3:
                 cout << "Exiting...\n";
                 break;
 
@@ -237,7 +253,7 @@ int main() {
                 cout << "Invalid choice.\n";
         }
 
-    } while(choice != 6);
+    } while(choice != 3);
 
     return 0;
 }
