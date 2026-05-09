@@ -34,6 +34,18 @@ int enterPIN() {
     return pin;
 }
 
+long long getAccountNumber() {
+        long long accNum;
+        cout << "Enter Account Number: ";
+    
+        while (!(cin >> accNum)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input. Enter a valid account number: ";
+        }
+        return accNum;
+    }
+
 class BankAccount {
 private:
     string accountHolderName;
@@ -126,6 +138,49 @@ public:
     const vector<Transaction>& getTransactionHistory() const {
         return transactionHistory;
     }
+
+    void saveToFile(ofstream& out) {
+        out << accountHolderName << endl;
+        out << customerID << endl;
+        out << IFSC << endl;
+        out << accountNumber << endl;
+        out << balance << endl;
+        out << PIN << endl;
+        out << transactionHistory.size() << endl;
+        for(const Transaction& tx: transactionHistory) {
+            out << tx.type << endl;
+            out << tx.amount << endl;
+            out << tx.balance << endl;
+            out << tx.timestamp << endl;
+        }
+    }
+
+    static BankAccount loadFromFile(ifstream& in) {
+        BankAccount account;
+        getline(in, account.accountHolderName);
+        getline(in, account.customerID);
+        getline(in, account.IFSC);
+        in >> account.accountNumber;
+        in >> account.balance;
+        in >> account.PIN;
+        int txCount;
+        in >> txCount;
+        in.ignore(numeric_limits<streamsize>::max(), '\n');
+        for(size_t i = 0; i < txCount; i++) {
+            Transaction tx;
+            getline(in, tx.type);
+            in >> tx.amount;
+            in >> tx.balance;
+            in >> tx.timestamp;
+            in.ignore(numeric_limits<streamsize>::max(), '\n');
+            account.transactionHistory.push_back(tx);
+        }
+        return account;
+    }
+
+    long long getStoredAccountNumber() const {
+        return accountNumber;
+    }
 };
 
 class BankSystem {
@@ -134,8 +189,14 @@ private:
     long long loadLastAccountNumber();
     void saveLastAccountNumber(long long number);
     vector<long long> deleteAccountNumbers;
+    void saveAccounts();
+    void loadAccounts();
 
 public:
+
+    BankSystem() {
+        loadAccounts();
+    }
 
     long long uniqueAccountNumber() {
         if(!deleteAccountNumbers.empty()) {
@@ -273,6 +334,10 @@ public:
             cout << "Account not found.\n";
         }
     }
+
+    ~BankSystem() {
+        saveAccounts();
+    }
 };
 
 long long BankSystem::loadLastAccountNumber() {
@@ -292,16 +357,41 @@ void BankSystem::saveLastAccountNumber(long long number) {
     file.close();
 }
 
-long long getAccountNumber() {
-    long long accNum;
-    cout << "Enter Account Number: ";
-    
-    while (!(cin >> accNum)) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Enter a valid account number: ";
+void BankSystem::saveAccounts() {
+    ofstream out("accounts.txt");
+    out << accounts.size() << endl;
+    for(auto& pair : accounts) {
+        pair.second.saveToFile(out);
     }
-    return accNum;
+    out << deleteAccountNumbers.size() << endl;
+    for(long long accNum : deleteAccountNumbers) {
+        out << accNum << endl;
+    }
+    out.close();
+}
+
+void BankSystem:: loadAccounts() {
+    ifstream in("accounts.txt");
+    if(!in.is_open()){
+        return;
+    }
+    size_t count;
+    in >> count;
+    in.ignore(numeric_limits<streamsize>::max(), '\n');
+    for(size_t i = 0; i < count; i++) {
+        BankAccount account = BankAccount::loadFromFile(in);
+        accounts[account.getStoredAccountNumber()] = account;
+    }
+    size_t delCount;
+    in >> delCount;
+    in.ignore(numeric_limits<streamsize>::max(), '\n');
+    for(size_t i = 0; i < delCount; i++) {
+        long long accNum;
+        in >> accNum;
+        in.ignore(numeric_limits<streamsize>::max(), '\n');
+        deleteAccountNumbers.push_back(accNum);
+    }
+    in.close();
 }
 
 void displayMenu() {
@@ -375,29 +465,22 @@ int main() {
             cout << "Invalid input. Try again.\n";
             continue;
         }
-
         switch(choice) {
-
             case 1: {
                 bank.createAccount();
                 pause();
                 break;
             }
-
             case 2: {
                 accountMenu(bank);
                 break;
             }
-
             case 3:
                 cout << "Exiting...\n";
                 break;
-
             default:
                 cout << "Invalid choice.\n";
         }
-
     } while(choice != 3);
-
     return 0;
 }
