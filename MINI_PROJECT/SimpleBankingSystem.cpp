@@ -10,7 +10,7 @@ using namespace std;
 
 struct Transaction {
     string type;
-    double amount, balance;
+    long long amount, balance;
     time_t timestamp;
 };
 
@@ -52,14 +52,14 @@ private:
     string customerID;
     string IFSC;
     long long accountNumber;
-    double balance;
+    long long balance; //Stored in paisa to avoid floating point issues
     vector <Transaction> transactionHistory;
     int PIN;
 
 public:
     BankAccount() {} //A default constructor is needed for map
 
-    BankAccount(string name, string id, string ifsc, long long accNum, double initialBalance, int pin) {
+    BankAccount(string name, string id, string ifsc, long long accNum, long long initialBalance, int pin) {
         accountHolderName = name;
         customerID = id;
         IFSC = ifsc;
@@ -99,18 +99,18 @@ public:
         }
     }
 
-    void deposit(double amount) {
+    void deposit(long long amount) {
         if (amount <= 0) {
             cout << "Invalid deposit amount.\n";
             return;
         } 
         balance += amount;
         cout << "Deposit successful.\n";
-        cout << "Current Balance: " << balance << endl;
+        cout << "Current Balance (in paisa): " << balance << endl;
         transactionHistory.push_back({ "Deposit", amount, balance, getCurrentTime() });
     }
 
-    void withdraw(double amount) {
+    void withdraw(long long amount) {
         if (amount <= 0) {
             cout << "Invalid withdrawal amount.\n";
         } else if (amount > balance) {
@@ -118,7 +118,7 @@ public:
         } else {
             balance -= amount;
             cout << "Withdrawal successful.\n";
-            cout << "Remaining Balance: " << balance << endl;
+            cout << "Remaining Balance (in paisa): " << balance << endl;
             transactionHistory.push_back({ "Withdrawal", amount, balance, getCurrentTime() });
         }
     }
@@ -128,7 +128,7 @@ public:
         cout << "       ACCOUNT DETAILS\n";
         cout << "\nAccount Holder: " << accountHolderName << endl;
         cout << "Account Number: " << accountNumber << endl;
-        cout << "Balance: " << balance << endl;
+        cout << "Balance (in paisa): " << balance << endl;
         cout << "Customer ID: " << customerID << endl;
         cout << "IFSC: " << IFSC << endl;
         cout << "Transaction Count: " << transactionHistory.size() << endl;
@@ -181,6 +181,10 @@ public:
     long long getStoredAccountNumber() const {
         return accountNumber;
     }
+
+    string getCustomerID() const {
+        return customerID;
+    }
 };
 
 class BankSystem {
@@ -214,7 +218,7 @@ public:
     void createAccount() {
         string name, id, ifsc;
         long long accNum;
-        double initialBalance;
+        long long initialBalance;
         cout << "Enter Name: ";
         getline(cin >> ws, name); // To handle spaces in name
         cout << "Enter Customer ID: ";
@@ -223,7 +227,7 @@ public:
         cin >> ifsc;
         accNum = uniqueAccountNumber();
         cout << "Generated Account Number: " << accNum << endl;
-        cout << "Enter Initial Balance: ";
+        cout << "Enter Initial Balance (in paisa): ";
         while(!(cin >> initialBalance)) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -265,8 +269,8 @@ public:
 
     void deposit(long long accNum) {
         if(accounts.find(accNum) != accounts.end()) {
-            double amount;
-            cout << "Enter amount to deposit: ";
+            long long amount;
+            cout << "Enter amount to deposit (in paisa): ";
             while(!(cin >> amount)) {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -280,8 +284,8 @@ public:
 
     void withdraw(long long accNum) {
         if(accounts.find(accNum) != accounts.end()) {
-            double amount;
-            cout << "Enter amount to withdraw: ";
+            long long amount;
+            cout << "Enter amount to withdraw (in paisa): ";
             while(!(cin >> amount)) {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -306,14 +310,14 @@ public:
         if(accounts.find(accNum) != accounts.end()) {
             const vector<Transaction>& history = accounts[accNum].getTransactionHistory();
             cout << "\nTransaction History for Account " << accNum << "\n";
-            cout << string(80, '=') << endl;
+            cout << string(100, '=') << endl;
 
-            cout << left << setw(20) << "Type" << right << setw(12) << "Amount" << right << setw(12) << "Balance" << right << setw(30) << "Timestamp" << endl;
+            cout << left << setw(20) << "Type" << right << setw(20) << "Amount (in paisa)" << right << setw(20) << "Balance (in paisa)" << right << setw(30) << "Timestamp" << endl;
 
-            cout << string(80, '-') << endl;
+            cout << string(100, '-') << endl;
 
             for (const Transaction& tx : history) {
-                cout << left << setw(20) << tx.type << right << setw(12) << tx.amount << right << setw(12) << tx.balance << right << setw(30) << ctime(&tx.timestamp) << endl;
+                cout << left << setw(20) << tx.type << right << setw(20) << tx.amount << right << setw(20) << tx.balance << right << setw(30) << ctime(&tx.timestamp) << endl;
             }
             cout << history.size() << " transactions displayed.\n";
         } else {
@@ -334,6 +338,48 @@ public:
             cout << "Account not found.\n";
         }
     }
+
+    void transfer(long long fromAccNum) {
+        long long toAccNum;
+        long long amount;
+        cout << "Enter the account number to transfer to: ";
+        cin >> toAccNum;
+        cout << "Enter the amount to transfer (in paisa): ";
+        cin >> amount;
+        if(!accountExists(fromAccNum)) {
+            cout  << "Source account not found.\n";
+            return;
+        }
+        if(!accountExists(toAccNum)) {
+            cout << "Destination account not found.\n";
+            return;
+        }
+        long long prevBalance = accounts[fromAccNum].getTransactionHistory().back().balance;
+        accounts[fromAccNum].withdraw(amount);
+        if(accounts[fromAccNum].getTransactionHistory().back().balance == prevBalance) {
+            cout << "Transfer failed.\n";
+            return;
+        }
+        accounts[toAccNum].deposit(amount);
+        cout << "Transfer successful.\n";
+    }
+
+    void searchByCustomerID() {
+    string id;
+    cout << "Enter Customer ID: ";
+    cin >> id;
+    bool found = false;
+    for(auto& pair : accounts) {
+        if(pair.second.getCustomerID() == id) {
+            pair.second.displayDetails();
+            found = true;
+            break;
+        }
+    }
+    if(!found) {
+        cout << "No account found with Customer ID: " << id << endl;
+    }
+}
 
     ~BankSystem() {
         saveAccounts();
@@ -400,7 +446,8 @@ void displayMenu() {
     cout << "====================================\n";
     cout << "1. Create Account\n";
     cout << "2. Account Operations\n";
-    cout << "3. Exit\n";
+    cout << "3. Search by Customer ID\n";
+    cout << "4. Exit\n";
     cout << "====================================\n";
 }
 
@@ -426,11 +473,12 @@ void accountMenu(BankSystem& bank) {
         cout << "\n--- Account Menu ---\n";
         cout << "1. Deposit\n";
         cout << "2. Withdraw\n";
-        cout << "3. View Account Details\n";
-        cout << "4. Transaction History\n";
-        cout << "5. Change PIN\n";
-        cout << "6. Delete Account\n";
-        cout << "7. Back\n";
+        cout << "3. Transfer to another account\n";
+        cout << "4. View Account Details\n";
+        cout << "5. Transaction History\n";
+        cout << "6. Change PIN\n";
+        cout << "7. Delete Account\n";
+        cout << "8. Back\n";
         cout << "Choice: ";
 
         cin >> choice;
@@ -438,11 +486,12 @@ void accountMenu(BankSystem& bank) {
         switch (choice) {
             case 1: bank.deposit(accNum); break;
             case 2: bank.withdraw(accNum); break;
-            case 3: bank.displayAccountDetails(accNum); break;
-            case 4: bank.displayTransactionHistory(accNum); break;
-            case 5: bank.changeAccountPIN(accNum); break;
-            case 6: bank.deleteAccount(accNum); return;
-            case 7: return;
+            case 3: bank.transfer(accNum); break;
+            case 4: bank.displayAccountDetails(accNum); break;
+            case 5: bank.displayTransactionHistory(accNum); break;
+            case 6: bank.changeAccountPIN(accNum); break;
+            case 7: bank.deleteAccount(accNum); return;
+            case 8: return;
             default: cout << "Invalid choice\n";
         }
 
@@ -475,12 +524,17 @@ int main() {
                 accountMenu(bank);
                 break;
             }
-            case 3:
+            case 3: {
+                bank.searchByCustomerID();
+                pause();
+                break;
+            }
+            case 4:
                 cout << "Exiting...\n";
                 break;
             default:
                 cout << "Invalid choice.\n";
         }
-    } while(choice != 3);
+    } while(choice != 4);
     return 0;
 }
