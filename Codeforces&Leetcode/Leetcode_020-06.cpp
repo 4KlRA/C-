@@ -9,6 +9,6 @@ public:
             }
             ans.push_back(sum);
         }
-         return ans;
+        return ans;
     }
 };
